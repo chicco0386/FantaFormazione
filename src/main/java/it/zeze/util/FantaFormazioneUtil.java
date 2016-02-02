@@ -149,7 +149,8 @@ public class FantaFormazioneUtil {
 		int currentIntNunmGiornata = Integer.valueOf(currentNumGiornata) - 1;
 		while (currentIntNunmGiornata > 0) {
 			System.out.println("Salvo stat giornata [" + currentIntNunmGiornata + "]");
-			SeleniumUtil.clickLink(String.valueOf(currentIntNunmGiornata));
+			SeleniumUtil.setDriverPage("http://www.fantagazzetta.com/voti-fantagazzetta-serie-A-"+currentIntNunmGiornata+"-giornata");
+//			SeleniumUtil.clickLink(String.valueOf(currentIntNunmGiornata));
 			System.out.println("Wait XPath");
 			SeleniumUtil.waitForXPathExpression("//div[@id='allvotes']");
 			System.out.println("Prima di save page");
