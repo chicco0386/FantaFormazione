@@ -1,14 +1,14 @@
 package it.zeze.bo;
 
-import it.zeze.entity.Squadre;
-import it.zeze.html.cleaner.HtmlCleanerUtil;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.htmlcleaner.TagNode;
 import org.htmlcleaner.XPatherException;
+
+import it.zeze.fantaformazioneweb.entity.Squadre;
+import it.zeze.html.cleaner.HtmlCleanerUtil;
 
 public class ListaSquadre {
 
