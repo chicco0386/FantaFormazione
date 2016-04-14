@@ -97,11 +97,16 @@ public class FantaFormazioneUtil {
 
 	public static void salvaVotiFantaGenius(String pathFileDest, String user, String password) throws FileNotFoundException, IOException {
 		SeleniumUtil.setDriverPage("http://www.fantagazzetta.com/");
-		SeleniumUtil.setInputFieldByTagAttribute("input", "class", "login-user", user);
-		SeleniumUtil.setInputFieldByTagAttribute("input", "class", "login-password", password);
-		SeleniumUtil.clickLinkTagAttribute("input", "class", "login-submit");
-		SeleniumUtil.setDriverPage("http://www.fantagazzetta.com/voti-fantagazzetta-serie-A");
-		SeleniumUtil.waitForXPathExpression("//div[@id='allvotes']");
+		try {
+			SeleniumUtil.setInputFieldByTagAttribute("input", "class", "login-user", user);
+			SeleniumUtil.setInputFieldByTagAttribute("input", "class", "login-password", password);
+			SeleniumUtil.clickLinkTagAttribute("input", "class", "login-submit");
+			SeleniumUtil.setDriverPage("http://www.fantagazzetta.com/voti-fantagazzetta-serie-A");
+			SeleniumUtil.waitForXPathExpression("//div[@id='allvotes']");
+		} catch (Exception e){
+			SeleniumUtil.setDriverPage("http://www.fantagazzetta.com/voti-serie-a");
+			SeleniumUtil.waitForXPathExpression("//*[@id='hvoti']");
+		}
 		SeleniumUtil.saveCurrentPage(pathFileDest);
 	}
 
@@ -139,20 +144,45 @@ public class FantaFormazioneUtil {
 		salvaVotiFantaGenius(pathFileDest, user, pass);
 		// Rinomino il file accodando il numero della giornata
 		File currentFile = new File(pathFileDest);
-		List<TagNode> listNodeGiorantaSelected = HtmlCleanerUtil.getListOfElementsByXPathFromFile(pathFileDest, "//div[@class='wrapper']/div[@class='main']/div[@class='graphic-big']/div[@class='day']/ul[@class='daynav']/li[@class='selected']");
-		String currentNumGiornata = listNodeGiorantaSelected.get(0).getText().toString();
+		String currentNumGiornata = null;
+		String stagione = null;
+		try {
+			List<TagNode> listNodeGiorantaSelected = HtmlCleanerUtil.getListOfElementsByXPathFromFile(pathFileDest, "//div[@class='wrapper']/div[@class='main']/div[@class='graphic-big']/div[@class='day']/ul[@class='daynav']/li[@class='selected']");
+			currentNumGiornata = listNodeGiorantaSelected.get(0).getText().toString();
+		} catch (Exception e){
+			// Nuovo formato HTML FantaGazzetta
+			currentNumGiornata = HtmlCleanerUtil.getAttributeValueFromFile(pathFileDest, "class", "xlsgior", null);
+			stagione = HtmlCleanerUtil.getAttributeValueFromFile(pathFileDest, "id", "hStagione", "value");
+		}
 		File destinationFile = new File(StringUtils.replace(currentFile.getAbsolutePath(), "{giornata}", String.valueOf(currentNumGiornata)));
 		if (destinationFile.exists()) {
 			FileUtils.forceDelete(destinationFile);
 		}
 		currentFile.renameTo(new File(StringUtils.replace(currentFile.getAbsolutePath(), "{giornata}", currentNumGiornata)));
 		int currentIntNunmGiornata = Integer.valueOf(currentNumGiornata) - 1;
+		boolean isNuovoHTML = false;
 		while (currentIntNunmGiornata > 0) {
 			System.out.println("Salvo stat giornata [" + currentIntNunmGiornata + "]");
-			SeleniumUtil.setDriverPage("http://www.fantagazzetta.com/voti-fantagazzetta-serie-A-"+currentIntNunmGiornata+"-giornata");
-//			SeleniumUtil.clickLink(String.valueOf(currentIntNunmGiornata));
-			System.out.println("Wait XPath");
-			SeleniumUtil.waitForXPathExpression("//div[@id='allvotes']");
+			try {
+				if (!isNuovoHTML){
+					SeleniumUtil.setDriverPage("http://www.fantagazzetta.com/voti-fantagazzetta-serie-A-"+currentIntNunmGiornata+"-giornata");
+		//			SeleniumUtil.clickLink(String.valueOf(currentIntNunmGiornata));
+					System.out.println("Wait XPath");
+					SeleniumUtil.waitForXPathExpression("//div[@id='allvotes']");
+					isNuovoHTML = true;
+				} else {
+					throw new Exception("Rilancio per fare parsing con nuovo HTML");
+				}
+			} catch (Exception e){
+				// Nuovo formato HTML FantaGazzetta
+				String url = "http://www.fantagazzetta.com/voti-serie-a/{stagione}/{giornata}";
+				url = StringUtils.replace(url, "{stagione}", stagione);
+				url = StringUtils.replace(url, "{giornata}", String.valueOf(currentIntNunmGiornata));
+				SeleniumUtil.setDriverPage(url);
+				System.out.println("Wait XPath");
+				SeleniumUtil.waitForXPathExpression("//div[@id='hvoti']");
+				isNuovoHTML = true;
+			}
 			System.out.println("Prima di save page");
 			SeleniumUtil.saveCurrentPage(pathFileDest);
 			System.out.println("Dopo save page");
@@ -169,8 +199,14 @@ public class FantaFormazioneUtil {
 		SeleniumUtil.saveHTMLPage("http://www.fantagazzetta.com/probabili-formazioni-serie-A", pathFileHTMLProbFormazioniFG);
 		// Rinomino il file accodando il numero della giornata
 		File currentFile = new File(pathFileHTMLProbFormazioniFG);
-		String currentGiornata = HtmlCleanerUtil.getListOfElementsByAttributeFromFile(pathFileHTMLProbFormazioniFG, "id", "ContentPlaceHolderElle_Labelgiornata").get(0).getText().toString();
-		currentGiornata = StringUtils.remove(currentGiornata.trim().toLowerCase(), " giornata");
+		String currentGiornata = null;
+		try {
+			currentGiornata = HtmlCleanerUtil.getListOfElementsByAttributeFromFile(pathFileHTMLProbFormazioniFG, "id", "ContentPlaceHolderElle_Labelgiornata").get(0).getText().toString();
+			currentGiornata = StringUtils.remove(currentGiornata.trim().toLowerCase(), " giornata");
+		} catch (Exception e){
+			// Nuovo formato HTML FantaGazzetta
+			currentGiornata = HtmlCleanerUtil.getAttributeValueFromFile(pathFileHTMLProbFormazioniFG, "id", "id_giornata", "value");
+		}
 		File destinationFile = new File(StringUtils.replace(currentFile.getAbsolutePath(), "{giornata}", currentGiornata));
 		if (destinationFile.exists()) {
 			FileUtils.forceDelete(destinationFile);
