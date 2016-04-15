@@ -98,11 +98,15 @@ public class FantaFormazioneUtil {
 	public static void salvaVotiFantaGenius(String pathFileDest, String user, String password) throws FileNotFoundException, IOException {
 		SeleniumUtil.setDriverPage("http://www.fantagazzetta.com/");
 		try {
-			SeleniumUtil.setInputFieldByTagAttribute("input", "class", "login-user", user);
-			SeleniumUtil.setInputFieldByTagAttribute("input", "class", "login-password", password);
-			SeleniumUtil.clickLinkTagAttribute("input", "class", "login-submit");
-			SeleniumUtil.setDriverPage("http://www.fantagazzetta.com/voti-fantagazzetta-serie-A");
-			SeleniumUtil.waitForXPathExpression("//div[@id='allvotes']");
+			if (user !=  null && password != null){
+				SeleniumUtil.setInputFieldByTagAttribute("input", "class", "login-user", user);
+				SeleniumUtil.setInputFieldByTagAttribute("input", "class", "login-password", password);
+				SeleniumUtil.clickLinkTagAttribute("input", "class", "login-submit");
+				SeleniumUtil.setDriverPage("http://www.fantagazzetta.com/voti-fantagazzetta-serie-A");
+				SeleniumUtil.waitForXPathExpression("//div[@id='allvotes']");
+			} else {
+				throw new Exception("Rilancio per fare parsing con nuovo HTML");
+			}
 		} catch (Exception e){
 			SeleniumUtil.setDriverPage("http://www.fantagazzetta.com/voti-serie-a");
 			SeleniumUtil.waitForXPathExpression("//*[@id='hvoti']");
