@@ -115,7 +115,7 @@ public class FantaFormazioneUtil {
 	}
 
 	public static void salvaSquadre(String pathFileDest) throws FileNotFoundException, IOException {
-		SeleniumUtil.setDriverPage("http://www.fantagazzetta.com/classifica-serie-A");
+		SeleniumUtil.setDriverPage("http://www.fantagazzetta.com/serie-a/classifica");
 		SeleniumUtil.saveCurrentPage(pathFileDest);
 	}
 
@@ -139,9 +139,24 @@ public class FantaFormazioneUtil {
 		SeleniumUtil.saveCurrentPage(pathFileDest);
 	}
 
-	public static void salvaCalendario(String pathFileDest) throws FileNotFoundException, IOException {
-		SeleniumUtil.setDriverPage("http://www.fantagazzetta.com/calendario-serie-A");
+	public static void salvaCalendario(String pathFileDest) throws FileNotFoundException, IOException, XPatherException {
+		SeleniumUtil.setDriverPage("http://www.fantagazzetta.com/serie-a/calendario");
 		SeleniumUtil.saveCurrentPage(pathFileDest);
+		File currentFile = new File(pathFileDest);
+		List<TagNode> listGiornate = HtmlCleanerUtil.getListOfElementsByXPathFromFile(pathFileDest, "//select[@id='selectGiornata']/option");
+		String currentGiornata;
+		for (TagNode currentNode : listGiornate){
+			currentGiornata = currentNode.getAttributeByName("value");
+			SeleniumUtil.setDriverPage("http://www.fantagazzetta.com/serie-a/calendario/"+currentGiornata);
+			String destinationFile = StringUtils.replace(currentFile.getAbsolutePath(), "{giornata}", currentGiornata);
+			SeleniumUtil.waitForXPathExpression("//div[@id='artContainer']");
+			SeleniumUtil.saveCurrentPage(destinationFile);
+		}
+		
+		File tmpFile = new File(pathFileDest);
+		if (tmpFile.exists()){
+			FileUtils.forceDelete(tmpFile);
+		}
 	}
 
 	public static void salvaStatistichePerTutteLeGiornate(String pathFileDest, String user, String pass) throws FileNotFoundException, IOException, XPatherException {
@@ -169,7 +184,7 @@ public class FantaFormazioneUtil {
 					if (!isNuovoHTML) {
 						SeleniumUtil.setDriverPage("http://www.fantagazzetta.com/voti-fantagazzetta-serie-A-" + currentIntNunmGiornata + "-giornata");
 						// SeleniumUtil.clickLink(String.valueOf(currentIntNunmGiornata));
-//						System.out.println("Wait XPath");
+						// System.out.println("Wait XPath");
 						SeleniumUtil.waitForXPathExpression("//div[@id='allvotes']");
 						isNuovoHTML = true;
 					} else {
@@ -181,18 +196,19 @@ public class FantaFormazioneUtil {
 					url = StringUtils.replace(url, "{stagione}", stagione);
 					url = StringUtils.replace(url, "{giornata}", String.valueOf(currentIntNunmGiornata));
 					SeleniumUtil.setDriverPage(url);
-//					System.out.println("Wait XPath");
+					// System.out.println("Wait XPath");
 					SeleniumUtil.waitForXPathExpression("//div[@id='hvoti']");
 					isNuovoHTML = true;
 				}
-//				System.out.println("Prima di save page");
+				// System.out.println("Prima di save page");
 				SeleniumUtil.saveCurrentPage(pathFileDest);
-//				System.out.println("Dopo save page");
+				// System.out.println("Dopo save page");
 				destinationFile = new File(StringUtils.replace(currentFile.getAbsolutePath(), "{giornata}", String.valueOf(currentIntNunmGiornata)));
 
 				currentFile.renameTo(destinationFile);
 			} else {
-//				System.out.println("Giornata [" + currentIntNunmGiornata + "] gia' salvata");
+				// System.out.println("Giornata [" + currentIntNunmGiornata + "]
+				// gia' salvata");
 			}
 			currentIntNunmGiornata = currentIntNunmGiornata - 1;
 		} while (currentIntNunmGiornata > 0);
