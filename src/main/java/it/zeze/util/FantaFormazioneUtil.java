@@ -139,22 +139,43 @@ public class FantaFormazioneUtil {
 		SeleniumUtil.saveCurrentPage(pathFileDest);
 	}
 
+	public static void salvaTuttiGiocatoriNew(String pathFileDest, String pathFileDestRuolo, String urlTemplate) throws FileNotFoundException, IOException, XPatherException {
+		SeleniumUtil.setDriverPage("http://www.fantagazzetta.com/quotazioni-serie-a/milano");
+		SeleniumUtil.saveCurrentPage(pathFileDest);
+		List<TagNode> listRuoli = HtmlCleanerUtil.getListOfElementsByXPathFromFile(pathFileDest, "//ul[@id='qttabs']//li");
+		String ruolo;
+		String stampa;
+		String url;
+		JSONClient client = new JSONClient();
+		String response;
+		for (TagNode currentRuolo : listRuoli) {
+			ruolo = currentRuolo.getAttributeByName("data-role");
+			stampa = currentRuolo.getAttributeByName("data-stamp");
+//			System.out.println("[" + ruolo + "]-[" + stampa + "]");
+			url = StringUtils.replace(urlTemplate, "{ruolo}", ruolo);
+			url = StringUtils.replace(url, "{stampa}", stampa);
+			response = client.callJsonService(url);
+			File destFile = new File(StringUtils.replace(pathFileDestRuolo, "{ruolo}", ruolo));
+			FileUtils.writeStringToFile(destFile, response);
+		}
+	}
+
 	public static void salvaCalendario(String pathFileDest) throws FileNotFoundException, IOException, XPatherException {
 		SeleniumUtil.setDriverPage("http://www.fantagazzetta.com/serie-a/calendario");
 		SeleniumUtil.saveCurrentPage(pathFileDest);
 		File currentFile = new File(pathFileDest);
 		List<TagNode> listGiornate = HtmlCleanerUtil.getListOfElementsByXPathFromFile(pathFileDest, "//select[@id='selectGiornata']/option");
 		String currentGiornata;
-		for (TagNode currentNode : listGiornate){
+		for (TagNode currentNode : listGiornate) {
 			currentGiornata = currentNode.getAttributeByName("value");
-			SeleniumUtil.setDriverPage("http://www.fantagazzetta.com/serie-a/calendario/"+currentGiornata);
+			SeleniumUtil.setDriverPage("http://www.fantagazzetta.com/serie-a/calendario/" + currentGiornata);
 			String destinationFile = StringUtils.replace(currentFile.getAbsolutePath(), "{giornata}", currentGiornata);
 			SeleniumUtil.waitForXPathExpression("//div[@id='artContainer']");
 			SeleniumUtil.saveCurrentPage(destinationFile);
 		}
-		
+
 		File tmpFile = new File(pathFileDest);
-		if (tmpFile.exists()){
+		if (tmpFile.exists()) {
 			FileUtils.forceDelete(tmpFile);
 		}
 	}
