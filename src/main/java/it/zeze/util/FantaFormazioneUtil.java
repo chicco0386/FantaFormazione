@@ -108,7 +108,7 @@ public class FantaFormazioneUtil {
 				throw new Exception("Rilancio per fare parsing con nuovo HTML");
 			}
 		} catch (Exception e) {
-			SeleniumUtil.setDriverPage("http://www.fantagazzetta.com/voti-serie-a");
+			SeleniumUtil.setDriverPage("http://www.fantagazzetta.com/voti-fantacalcio-serie-a");
 			SeleniumUtil.waitForXPathExpression("//*[@id='hvoti']");
 		}
 		SeleniumUtil.saveCurrentPage(pathFileDest);
@@ -140,7 +140,7 @@ public class FantaFormazioneUtil {
 	}
 
 	public static void salvaTuttiGiocatoriNew(String pathFileDest, String pathFileDestRuolo, String urlTemplate) throws FileNotFoundException, IOException, XPatherException {
-		SeleniumUtil.setDriverPage("http://www.fantagazzetta.com/quotazioni-serie-a/milano");
+		SeleniumUtil.setDriverPage("https://www.fantagazzetta.com/quotazioni-fantacalcio/alternativi");
 		SeleniumUtil.saveCurrentPage(pathFileDest);
 		List<TagNode> listRuoli = HtmlCleanerUtil.getListOfElementsByXPathFromFile(pathFileDest, "//ul[@id='qttabs']//li");
 		String ruolo;
@@ -186,6 +186,7 @@ public class FantaFormazioneUtil {
 		File currentFile = new File(pathFileDest);
 		String currentNumGiornata = null;
 		String stagione = null;
+		boolean isNuovoHTML = false;
 		try {
 			List<TagNode> listNodeGiorantaSelected = HtmlCleanerUtil.getListOfElementsByXPathFromFile(pathFileDest, "//div[@class='wrapper']/div[@class='main']/div[@class='graphic-big']/div[@class='day']/ul[@class='daynav']/li[@class='selected']");
 			currentNumGiornata = listNodeGiorantaSelected.get(0).getText().toString();
@@ -193,10 +194,10 @@ public class FantaFormazioneUtil {
 			// Nuovo formato HTML FantaGazzetta
 			currentNumGiornata = HtmlCleanerUtil.getAttributeValueFromFile(pathFileDest, "class", "xlsgior", null);
 			stagione = HtmlCleanerUtil.getAttributeValueFromFile(pathFileDest, "id", "hStagione", "value");
+			isNuovoHTML = true;
 		}
 
 		int currentIntNunmGiornata = Integer.valueOf(currentNumGiornata);
-		boolean isNuovoHTML = false;
 		do {
 			File destinationFile = new File(StringUtils.replace(currentFile.getAbsolutePath(), "{giornata}", String.valueOf(currentIntNunmGiornata)));
 			if (!destinationFile.exists()) {
@@ -207,19 +208,19 @@ public class FantaFormazioneUtil {
 						// SeleniumUtil.clickLink(String.valueOf(currentIntNunmGiornata));
 						// System.out.println("Wait XPath");
 						SeleniumUtil.waitForXPathExpression("//div[@id='allvotes']");
-						isNuovoHTML = true;
+//						isNuovoHTML = true;
 					} else {
 						throw new Exception("Rilancio per fare parsing con nuovo HTML");
 					}
 				} catch (Exception e) {
 					// Nuovo formato HTML FantaGazzetta
-					String url = "http://www.fantagazzetta.com/voti-serie-a/{stagione}/{giornata}";
+					String url = "http://www.fantagazzetta.com/voti-fantacalcio-serie-a/{stagione}/{giornata}";
 					url = StringUtils.replace(url, "{stagione}", stagione);
 					url = StringUtils.replace(url, "{giornata}", String.valueOf(currentIntNunmGiornata));
 					SeleniumUtil.setDriverPage(url);
 					// System.out.println("Wait XPath");
 					SeleniumUtil.waitForXPathExpression("//div[@id='hvoti']");
-					isNuovoHTML = true;
+//					isNuovoHTML = true;
 				}
 				// System.out.println("Prima di save page");
 				SeleniumUtil.saveCurrentPage(pathFileDest);
