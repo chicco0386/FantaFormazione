@@ -5,13 +5,16 @@ import it.zeze.bo.ListaGiocatori;
 import it.zeze.html.cleaner.HtmlCleanerUtil;
 import it.zeze.selenium.SeleniumUtil;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.htmlcleaner.TagNode;
 import org.htmlcleaner.XPatherException;
 
+import javax.ws.rs.core.MediaType;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.List;
 
@@ -109,16 +112,16 @@ public class FantaFormazioneUtil {
                 throw new Exception("Rilancio per fare parsing con nuovo HTML");
             }
         } catch (Exception e) {
-			SeleniumUtil.setDriverPage("http://www.fantagazzetta.com/voti-fantacalcio-serie-a");
-                try {
-                    SeleniumUtil.waitForXPathExpression("//*[@id='hvoti']");
-                } catch (Exception ex) {
-                    System.out.println("Skip save statistiche");
-                    saveVoti = false;
-                }
-		}
-		if (saveVoti) {
-                SeleniumUtil.saveCurrentPage(pathFileDest);
+            SeleniumUtil.setDriverPage("http://www.fantagazzetta.com/voti-fantacalcio-serie-a");
+            try {
+                SeleniumUtil.waitForXPathExpression("//*[@id='hvoti']");
+            } catch (Exception ex) {
+                System.out.println("Skip save statistiche");
+                saveVoti = false;
+            }
+        }
+        if (saveVoti) {
+            SeleniumUtil.saveCurrentPage(pathFileDest);
         }
         return saveVoti;
     }
@@ -153,7 +156,7 @@ public class FantaFormazioneUtil {
         SeleniumUtil.saveCurrentPage(pathFileDest);
     }
 
-    public static void salvaTuttiGiocatoriNew(String pathFileDest, String pathFileDestRuolo, String urlTemplate, boolean useSelenium) throws FileNotFoundException, IOException, XPatherException {
+    public static void salvaTuttiGiocatoriNew(String pathFileDest, String pathFileDestRuolo, String urlTemplate, boolean useSelenium) throws Exception {
         String urlPath = "https://www.fantagazzetta.com/quotazioni-fantacalcio/alternativi";
         if (useSelenium) {
             SeleniumUtil.setDriverPage(urlPath);
@@ -165,7 +168,6 @@ public class FantaFormazioneUtil {
         String ruolo;
         String stampa;
         String url;
-        JSONClient client = new JSONClient();
         String response;
         for (TagNode currentRuolo : listRuoli) {
             ruolo = currentRuolo.getAttributeByName("data-role");
@@ -173,7 +175,7 @@ public class FantaFormazioneUtil {
             // System.out.println("[" + ruolo + "]-[" + stampa + "]");
             url = StringUtils.replace(urlTemplate, "{ruolo}", ruolo);
             url = StringUtils.replace(url, "{stampa}", stampa);
-            response = client.callJsonService(url);
+            response = ClientRestUtils.getCall(url, null, null, MediaType.APPLICATION_JSON_TYPE, String.class);
             File destFile = new File(StringUtils.replace(pathFileDestRuolo, "{ruolo}", ruolo));
             FileUtils.writeStringToFile(destFile, response);
         }
@@ -247,14 +249,14 @@ public class FantaFormazioneUtil {
                         String url = "https://www.fantagazzetta.com/voti-fantacalcio-serie-a/{stagione}/{giornata}";
                         url = StringUtils.replace(url, "{stagione}", stagione);
                         url = StringUtils.replace(url, "{giornata}", String.valueOf(currentIntNunmGiornata));
-                            SeleniumUtil.setDriverPage(url);
-                            // System.out.println("Wait XPath");
-                            SeleniumUtil.waitForXPathExpression("//div[@id='hvoti']");
-                            // isNuovoHTML = true;
-					}
-					// System.out.println("Prima di save page");
-                            SeleniumUtil.saveCurrentPage(pathFileDest);
-					// System.out.println("Dopo save page");
+                        SeleniumUtil.setDriverPage(url);
+                        // System.out.println("Wait XPath");
+                        SeleniumUtil.waitForXPathExpression("//div[@id='hvoti']");
+                        // isNuovoHTML = true;
+                    }
+                    // System.out.println("Prima di save page");
+                    SeleniumUtil.saveCurrentPage(pathFileDest);
+                    // System.out.println("Dopo save page");
                     destinationFile = new File(StringUtils.replace(currentFile.getAbsolutePath(), "{giornata}", String.valueOf(currentIntNunmGiornata)));
 
                     currentFile.renameTo(destinationFile);
@@ -325,5 +327,42 @@ public class FantaFormazioneUtil {
             FileUtils.forceDelete(destinationFile);
         }
         currentFile.renameTo(destinationFile);
+    }
+
+    public static void salvaStatistichePerTutteLeGiornateNew(String pathFileHTMLStatistiche) throws Exception {
+        String urlPath = "https://www.fantagazzetta.com/voti-fantacalcio-serie-a";
+        String pathTemp = pathFileHTMLStatistiche + "_tmp";
+        File currentFile = new File(pathTemp);
+        FileUtils.copyURLToFile(new URL(urlPath), currentFile);
+        String stagione = HtmlCleanerUtil.getAttributeValueFromFile(pathTemp, "id", "hStagione", "value");
+        String tvStamp = HtmlCleanerUtil.getAttributeValueFromFile(pathTemp, "id", "tvstamp", "value");
+        String ultimaGiornataCalcolata = HtmlCleanerUtil.getAttributeValueFromFile(pathTemp, "id", "ultimaC", "value");
+        // Ciclo per tutte le squadre e creo un file unico
+        List<TagNode> listDataTeam = HtmlCleanerUtil.getListOfElementsByAttributeFromFile(pathTemp, "data-team", null);
+        String urlRestTemplate = "https://www.fantagazzetta.com/Servizi/Voti.ashx?s={stagione}&g={currentGiornata}&tv={tvStamp}&t={currentDataTeam}";
+        urlRestTemplate = StringUtils.replace(urlRestTemplate, "{stagione}", stagione);
+        urlRestTemplate = StringUtils.replace(urlRestTemplate, "{tvStamp}", tvStamp);
+        int currentGiornata = Integer.valueOf(ultimaGiornataCalcolata);
+        String responseDecoded;
+        while (currentGiornata > 0) {
+            File destinationFile = new File(StringUtils.replace(pathFileHTMLStatistiche, "{giornata}", String.valueOf(currentGiornata)));
+            if (!destinationFile.exists()) {
+                System.out.println("Salvo stat giornata [" + currentGiornata + "]");
+                String currentUrlRestTemplate = StringUtils.replace(urlRestTemplate, "{currentGiornata}", String.valueOf(currentGiornata));
+                String currentDataTeam;
+                for (TagNode currentDataTeamNode : listDataTeam) {
+                    currentDataTeam = currentDataTeamNode.getAttributeByName("data-team");
+                    System.out.println("    Salvo squadra [" + currentDataTeam + "]");
+                    String currentUrlRest = StringUtils.replace(currentUrlRestTemplate, "{currentDataTeam}", String.valueOf(currentDataTeam));
+                    try (InputStream response = ClientRestUtils.getCall(currentUrlRest, null, null, MediaType.APPLICATION_OCTET_STREAM_TYPE, InputStream.class)) {
+                        FileUtils.writeStringToFile(destinationFile, IOUtils.toString(response), true);
+                    }
+                }
+            }
+            currentGiornata = currentGiornata - 1;
+        }
+        if (currentFile.exists()) {
+            FileUtils.forceDelete(currentFile);
+        }
     }
 }
