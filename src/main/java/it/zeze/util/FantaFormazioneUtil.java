@@ -102,11 +102,11 @@ public class FantaFormazioneUtil {
         boolean saveVoti = true;
         try {
             if (user != null && password != null) {
-                SeleniumUtil.setDriverPage("https://www.fantagazzetta.com/");
+                SeleniumUtil.setDriverPage("https://www.fantacalcio.it/");
                 SeleniumUtil.setInputFieldByTagAttribute("input", "class", "login-user", user);
                 SeleniumUtil.setInputFieldByTagAttribute("input", "class", "login-password", password);
                 SeleniumUtil.clickLinkTagAttribute("input", "class", "login-submit");
-                SeleniumUtil.setDriverPage("https://www.fantagazzetta.com/voti-fantagazzetta-serie-A");
+                SeleniumUtil.setDriverPage("https://www.fantacalcio.it/voti-fantagazzetta-serie-A");
                 SeleniumUtil.waitForXPathExpression("//div[@id='allvotes']");
             } else {
                 throw new Exception("Rilancio per fare parsing con nuovo HTML");
@@ -127,7 +127,7 @@ public class FantaFormazioneUtil {
     }
 
     public static void salvaSquadre(String pathFileDest, boolean useSelenium) throws FileNotFoundException, IOException {
-        String urlPath = "https://www.fantagazzetta.com/serie-a/classifica";
+        String urlPath = "https://www.fantacalcio.it/serie-a/classifica";
         if (useSelenium) {
             SeleniumUtil.setDriverPage(urlPath);
             SeleniumUtil.saveCurrentPage(pathFileDest);
@@ -137,27 +137,27 @@ public class FantaFormazioneUtil {
     }
 
     public static void salvaGiocatoriPortieri(String pathFileDest) throws FileNotFoundException, IOException {
-        SeleniumUtil.setDriverPage("https://www.fantagazzetta.com/quotazioni-serie-a/portieri/costodesc");
+        SeleniumUtil.setDriverPage("https://www.fantacalcio.it/quotazioni-serie-a/portieri/costodesc");
         SeleniumUtil.saveCurrentPage(pathFileDest);
     }
 
     public static void salvaGiocatoriDifensori(String pathFileDest) throws FileNotFoundException, IOException {
-        SeleniumUtil.setDriverPage("https://www.fantagazzetta.com/quotazioni-serie-a/difensori/costodesc");
+        SeleniumUtil.setDriverPage("https://www.fantacalcio.it/quotazioni-serie-a/difensori/costodesc");
         SeleniumUtil.saveCurrentPage(pathFileDest);
     }
 
     public static void salvaGiocatoriCentrocampisti(String pathFileDest) throws FileNotFoundException, IOException {
-        SeleniumUtil.setDriverPage("https://www.fantagazzetta.com/quotazioni-serie-a/centrocampisti/costodesc");
+        SeleniumUtil.setDriverPage("https://www.fantacalcio.it/quotazioni-serie-a/centrocampisti/costodesc");
         SeleniumUtil.saveCurrentPage(pathFileDest);
     }
 
     public static void salvaGiocatoriAttaccanti(String pathFileDest) throws FileNotFoundException, IOException {
-        SeleniumUtil.setDriverPage("https://www.fantagazzetta.com/quotazioni-serie-a/attaccanti/costodesc");
+        SeleniumUtil.setDriverPage("https://www.fantacalcio.it/quotazioni-serie-a/attaccanti/costodesc");
         SeleniumUtil.saveCurrentPage(pathFileDest);
     }
 
     public static void salvaTuttiGiocatoriNew(String pathFileDest, String pathFileDestRuolo, String urlTemplate, boolean useSelenium) throws Exception {
-        String urlPath = "https://www.fantagazzetta.com/quotazioni-fantacalcio/alternativi";
+        String urlPath = "https://www.fantacalcio.it/quotazioni-fantacalcio/alternativi";
         if (useSelenium) {
             SeleniumUtil.setDriverPage(urlPath);
             SeleniumUtil.saveCurrentPage(pathFileDest);
@@ -182,7 +182,7 @@ public class FantaFormazioneUtil {
     }
 
     public static void salvaCalendario(String pathFileDest, boolean useSelenium) throws FileNotFoundException, IOException, XPatherException {
-        String urlPath = "https://www.fantagazzetta.com/serie-a/calendario";
+        String urlPath = "https://www.fantacalcio.it/serie-a/calendario";
         if (useSelenium) {
             SeleniumUtil.setDriverPage(urlPath);
             SeleniumUtil.saveCurrentPage(pathFileDest);
@@ -236,7 +236,7 @@ public class FantaFormazioneUtil {
                     System.out.println("Salvo stat giornata [" + currentIntNunmGiornata + "]");
                     try {
                         if (!isNuovoHTML) {
-                            SeleniumUtil.setDriverPage("https://www.fantagazzetta.com/voti-fantagazzetta-serie-A-" + currentIntNunmGiornata + "-giornata");
+                            SeleniumUtil.setDriverPage("https://www.fantacalcio.it/voti-fantagazzetta-serie-A-" + currentIntNunmGiornata + "-giornata");
                             // SeleniumUtil.clickLink(String.valueOf(currentIntNunmGiornata));
                             // System.out.println("Wait XPath");
                             SeleniumUtil.waitForXPathExpression("//div[@id='allvotes']");
@@ -246,7 +246,7 @@ public class FantaFormazioneUtil {
                         }
                     } catch (Exception e) {
                         // Nuovo formato HTML FantaGazzetta
-                        String url = "https://www.fantagazzetta.com/voti-fantacalcio-serie-a/{stagione}/{giornata}";
+                        String url = "https://www.fantacalcio.it/voti-fantacalcio-serie-a/{stagione}/{giornata}";
                         url = StringUtils.replace(url, "{stagione}", stagione);
                         url = StringUtils.replace(url, "{giornata}", String.valueOf(currentIntNunmGiornata));
                         SeleniumUtil.setDriverPage(url);
@@ -276,7 +276,7 @@ public class FantaFormazioneUtil {
     }
 
     public static void salvaProbabiliFormazioniFG(String pathFileHTMLProbFormazioniFG, boolean useSelenium) throws FileNotFoundException, IOException, XPatherException {
-        String urlPath = "https://www.fantagazzetta.com/probabili-formazioni-serie-A";
+        String urlPath = "https://www.fantacalcio.it/probabili-formazioni-serie-A";
         if (useSelenium) {
             SeleniumUtil.saveHTMLPage(urlPath, pathFileHTMLProbFormazioniFG);
         } else {
@@ -330,7 +330,7 @@ public class FantaFormazioneUtil {
     }
 
     public static void salvaStatistichePerTutteLeGiornateNew(String pathFileHTMLStatistiche) throws Exception {
-        String urlPath = "https://www.fantagazzetta.com/voti-fantacalcio-serie-a";
+        String urlPath = "https://www.fantacalcio.it/voti-fantacalcio-serie-a";
         String pathTemp = pathFileHTMLStatistiche + "_tmp";
         File currentFile = new File(pathTemp);
         FileUtils.copyURLToFile(new URL(urlPath), currentFile);
@@ -339,7 +339,7 @@ public class FantaFormazioneUtil {
         String ultimaGiornataCalcolata = HtmlCleanerUtil.getAttributeValueFromFile(pathTemp, "id", "ultimaC", "value");
         // Ciclo per tutte le squadre e creo un file unico
         List<TagNode> listDataTeam = HtmlCleanerUtil.getListOfElementsByAttributeFromFile(pathTemp, "data-team", null);
-        String urlRestTemplate = "https://www.fantagazzetta.com/Servizi/Voti.ashx?s={stagione}&g={currentGiornata}&tv={tvStamp}&t={currentDataTeam}";
+        String urlRestTemplate = "https://www.fantacalcio.it/Servizi/Voti.ashx?s={stagione}&g={currentGiornata}&tv={tvStamp}&t={currentDataTeam}";
         urlRestTemplate = StringUtils.replace(urlRestTemplate, "{stagione}", stagione);
         urlRestTemplate = StringUtils.replace(urlRestTemplate, "{tvStamp}", tvStamp);
         int currentGiornata = Integer.valueOf(ultimaGiornataCalcolata);
