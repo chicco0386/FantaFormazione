@@ -365,4 +365,28 @@ public class FantaFormazioneUtil {
             FileUtils.forceDelete(currentFile);
         }
     }
+
+    public static void salvaStatistichePerTutteLeGiornateNew202122(String pathFileHTMLStatistiche) throws Exception {
+        String urlPath = "https://www.fantacalcio.it/voti-fantacalcio-serie-a";
+        String pathTemp = pathFileHTMLStatistiche + "_tmp";
+        File currentFile = new File(pathTemp);
+        FileUtils.copyURLToFile(new URL(urlPath), currentFile);
+        String stagione = HtmlCleanerUtil.getAttributeValueFromFile(pathTemp, "id", "hStagione", "value");
+        String ultimaGiornataCalcolata = HtmlCleanerUtil.getAttributeValueFromFile(pathTemp, "id", "ultimaC", "value");
+        String urlRestTemplate = "https://www.fantacalcio.it/voti-fantacalcio-serie-a/{stagione}/{currentGiornata}";
+        urlRestTemplate = StringUtils.replace(urlRestTemplate, "{stagione}", stagione);
+        int currentGiornata = Integer.valueOf(ultimaGiornataCalcolata);
+        while (currentGiornata > 0) {
+            File destinationFile = new File(StringUtils.replace(pathFileHTMLStatistiche, "{giornata}", String.valueOf(currentGiornata)));
+            if (!destinationFile.exists()) {
+                System.out.println("Salvo stat giornata [" + currentGiornata + "]");
+                String currentUrlRestTemplate = StringUtils.replace(urlRestTemplate, "{currentGiornata}", String.valueOf(currentGiornata));
+                FileUtils.copyURLToFile(new URL(currentUrlRestTemplate), destinationFile);
+            }
+            currentGiornata = currentGiornata - 1;
+        }
+        if (currentFile.exists()) {
+            FileUtils.forceDelete(currentFile);
+        }
+    }
 }
